@@ -1,0 +1,72 @@
+{
+  "name": "langscale",
+  "version": "1.0.0",
+  "description": "Type-safe localization and language management for modern TypeScript applications.",
+  "keywords": [
+    "i18n",
+    "l10n",
+    "language-management",
+    "localization",
+    "react",
+    "translation",
+    "type-safe",
+    "typescript"
+  ],
+  "homepage": "https://github.com/chishiyac/langscale#readme",
+  "bugs": {
+    "url": "https://github.com/chishiyac/langscale/issues"
+  },
+  "license": "MIT",
+  "author": "chishiyac <matheussdev3@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chishiyac/langscale.git"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js",
+      "default": "./dist/react.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "pnpm exec tsc --project tsconfig.json --outDir dist --declaration --declarationMap --rootDir src",
+    "dev": "node scripts/dev.mjs",
+    "fmt:check": "ultracite check",
+    "fmt": "ultracite fix",
+    "type-check": "tsc --project tsconfig.app.json",
+    "pr:check": "pnpm run fmt && pnpm run type-check"
+  },
+  "dependencies": {
+    "typescript": "^5.6.0"
+  },
+  "devDependencies": {
+    "lefthook": "^2.1.9",
+    "lint-staged": "^17.0.7",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
+    "ultracite": "7.8.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@10.26.2"
+}
