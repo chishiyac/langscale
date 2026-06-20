@@ -32,18 +32,6 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    },
-    "./react": {
-      "types": "./dist/react.d.ts",
-      "import": "./dist/react.js",
-      "default": "./dist/react.js"
-    }
-  },
   "publishConfig": {
     "access": "public"
   },
@@ -52,7 +40,7 @@
     "dev": "node scripts/dev.mjs",
     "fmt:check": "ultracite check",
     "fmt": "ultracite fix",
-    "type-check": "tsc --project tsconfig.app.json",
+    "type-check": "tsc --project tsconfig.json",
     "pr:check": "pnpm run fmt && pnpm run type-check"
   },
   "dependencies": {
