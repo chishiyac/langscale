@@ -1,0 +1,53 @@
+{
+  "name": "langscale",
+  "version": "0.0.0",
+  "description": "Type-safe localization and language management for modern TypeScript applications.",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "imports": {
+    "#api/*": {
+      "development": "./src/api/*.ts",
+      "types": "./src/api/*.ts",
+      "default": "./dist/api/*.js"
+    },
+    "#constants/*": {
+      "development": "./src/constants/*.ts",
+      "types": "./src/constants/*.ts",
+      "default": "./dist/constants/*.js"
+    },
+    "#types/*": {
+      "development": "./src/types/*.ts",
+      "types": "./src/types/*.ts",
+      "default": "./dist/types/*.js"
+    },
+    "#utils/*": {
+      "development": "./src/utils/*.ts",
+      "types": "./src/utils/*.ts",
+      "default": "./dist/utils/*.js"
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "pnpm exec tsc -b tsconfig.json",
+    "dev": "node --conditions=development --experimental-strip-types --no-warnings --watch src/index.ts",
+    "fmt:check": "pnpm exec ultracite check",
+    "fmt": "pnpm exec ultracite fix",
+    "type-check": "pnpm exec tsc -p tsconfig.json --noEmit"
+  }
+}
