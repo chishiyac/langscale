@@ -8,12 +8,10 @@ import type {
   LocaleNamespacesConfig,
   LocalePath
 } from '#types/index'
-import { isRecord } from '#utils/helpers'
 import { storage, type StorageConfig } from '#utils/storage'
 import {
   composeLocalePaths,
   mergeRecords,
-  resolveNamespaceValue,
   type TranslationSchema
 } from '#utils/translation'
 
@@ -81,8 +79,8 @@ interface GetTranslations<
  * Creates the locale state manager for a set of defined locales.
  *
  * The returned `t` object always reflects the active locale, while
- * `getTranslations` can narrow the returned branch using a 2-level
- * namespace such as `home-page` or `checkout-form`.
+ * `getTranslations` can narrow the returned branch using a configured
+ * namespace such as `login-form` or `checkout-form`.
  *
  * @example
  *   ;```ts
@@ -91,6 +89,7 @@ interface GetTranslations<
  *     locales: [enUS, ptBR],
  *     globals: ['global.action'],
  *     namespaces: {
+ *       'home-page': ['page.home'],
  *       'login-form': ['form.login']
  *     }
  *   })
@@ -171,37 +170,18 @@ const createLocaleConfig = <
     const configuredPaths =
       namespacePaths[namespace as keyof TNamespaces]
 
-    if (configuredPaths !== undefined) {
-      return mergeRecords(
-        content,
-        composeLocalePaths(
-          activeSource,
-          defaultLocale,
-          configuredPaths,
-          'root'
-        )
-      )
-    }
-
-    const fallbackValue = resolveNamespaceValue(
-      defaultLocale,
-      defaultLocale,
-      namespace
-    )
-
-    if (!isRecord(fallbackValue)) {
+    if (configuredPaths === undefined) {
       return undefined
     }
 
-    const activeValue = resolveNamespaceValue(
-      activeSource,
-      defaultLocale,
-      namespace
-    )
-
     return mergeRecords(
       content,
-      isRecord(activeValue) ? activeValue : fallbackValue
+      composeLocalePaths(
+        activeSource,
+        defaultLocale,
+        configuredPaths,
+        'root'
+      )
     )
   }
 

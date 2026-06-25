@@ -140,6 +140,7 @@ interface LocaleStore<
  *     locales: [enUS, ptBR],
  *     globals: ['global.action'],
  *     namespaces: {
+ *       'home-page': ['page.home'],
  *       'login-form': ['form.login']
  *     }
  *   })

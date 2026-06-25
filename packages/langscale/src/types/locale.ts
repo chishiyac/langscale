@@ -245,7 +245,7 @@ type ConfiguredLocaleNamespace<TNamespaces> = Extract<
 type LocaleNamespaceOption<
   TSchema extends object,
   TNamespaces extends LocaleNamespacesConfig<TSchema>
-> = LocaleNamespace<TSchema> | ConfiguredLocaleNamespace<TNamespaces>
+> = ConfiguredLocaleNamespace<TNamespaces>
 
 type ComposedLocaleNamespaceValue<
   TSchema extends object,
@@ -257,12 +257,7 @@ type ComposedLocaleNamespaceValue<
       MergeLocalePaths<TSchema, TGlobals, 'mounted'>,
       MergeLocalePaths<TSchema, TNamespaces[TNamespace], 'root'>
     >
-  : TNamespace extends LocaleNamespace<TSchema>
-    ? DeepMerge<
-        MergeLocalePaths<TSchema, TGlobals, 'mounted'>,
-        LocaleNamespaceValue<TSchema, TNamespace>
-      >
-    : never
+  : never
 
 export type {
   ComposedLocaleNamespaceValue,

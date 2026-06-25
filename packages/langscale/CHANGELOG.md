@@ -1,5 +1,11 @@
 # langscale
 
+## 2.0.1
+
+### Patch Changes
+
+- Restrict composed namespace typing and resolution to explicitly configured namespaces.
+
 ## 2.0.0
 
 ### Major Changes

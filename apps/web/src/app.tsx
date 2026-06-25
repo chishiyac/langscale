@@ -172,6 +172,8 @@ const { LocaleProvider, getTranslations, useLocale } =
     globals: ['global.action', 'global.state'],
     locales: [enUS, ptBR],
     namespaces: {
+      'bubble-component': ['component.bubble'],
+      'home-page': ['page.home'],
       'login-form': ['form.login']
     },
     storage: {
