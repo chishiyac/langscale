@@ -3,6 +3,8 @@ import { toNamespaceSegment } from '#utils/string'
 
 type TranslationSchema = object
 
+type LocalePathMountMode = 'mounted' | 'root'
+
 const getValueAtPath = (
   source: TranslationSchema,
   path: readonly string[]
@@ -78,11 +80,89 @@ const resolveNamespaceValue = (
   return undefined
 }
 
+const splitLocalePath = (path: string): string[] => path.split('.')
+
+const getLocalePathMountKey = (path: string): string => {
+  const segments = splitLocalePath(path)
+
+  return segments.at(-1) ?? path
+}
+
+const mergeRecords = (
+  target: Record<string, unknown>,
+  source: Record<string, unknown>
+): Record<string, unknown> => {
+  for (const [key, sourceValue] of Object.entries(source)) {
+    const targetValue = target[key]
+
+    if (isRecord(targetValue) && isRecord(sourceValue)) {
+      target[key] = mergeRecords({ ...targetValue }, sourceValue)
+      continue
+    }
+
+    target[key] = sourceValue
+  }
+
+  return target
+}
+
+const mergeLocalePathValue = (
+  target: Record<string, unknown>,
+  path: string,
+  value: Record<string, unknown>,
+  mode: LocalePathMountMode
+): void => {
+  if (mode === 'mounted') {
+    mergeRecords(target, {
+      [getLocalePathMountKey(path)]: value
+    })
+
+    return
+  }
+
+  mergeRecords(target, value)
+}
+
+const composeLocalePaths = (
+  activeSource: TranslationSchema,
+  fallbackSource: TranslationSchema,
+  paths: readonly string[],
+  mode: LocalePathMountMode
+): Record<string, unknown> => {
+  const content: Record<string, unknown> = {}
+
+  for (const path of paths) {
+    const segments = splitLocalePath(path)
+    const fallbackValue = getValueAtPath(fallbackSource, segments)
+
+    if (!isRecord(fallbackValue)) {
+      throw new Error(`Unknown locale path: ${path}`)
+    }
+
+    const activeValue = resolveValueAtPath(
+      activeSource,
+      fallbackSource,
+      segments
+    )
+
+    mergeLocalePathValue(
+      content,
+      path,
+      isRecord(activeValue) ? activeValue : fallbackValue,
+      mode
+    )
+  }
+
+  return content
+}
+
 export {
+  composeLocalePaths,
   getValueAtPath,
   isRecord,
+  mergeRecords,
   resolveNamespaceValue,
   resolveValueAtPath
 }
 
-export type { TranslationSchema }
+export type { LocalePathMountMode, TranslationSchema }

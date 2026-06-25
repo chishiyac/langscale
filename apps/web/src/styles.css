@@ -111,6 +111,12 @@ h1 {
   background: rgba(143, 184, 255, 0.16);
 }
 
+.button.primary {
+  border-color: #9bd5bd;
+  color: #06131a;
+  background: #9bd5bd;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -142,6 +148,37 @@ h1 {
 
 .card li + li {
   margin-top: 8px;
+}
+
+.field {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.field span {
+  color: rgba(235, 241, 255, 0.76);
+  font-size: 0.92rem;
+}
+
+.field input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: #f5f7fb;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.field input::placeholder {
+  color: rgba(235, 241, 255, 0.42);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .muted {

@@ -1,9 +1,11 @@
 import {
   createLocaleConfig as createCoreLocaleConfig,
   createFmt,
+  type ComposedLocaleNamespaceValue,
   type Locale,
-  type LocaleNamespace,
-  type LocaleNamespaceValue
+  type LocaleNamespaceOption,
+  type LocaleNamespacesConfig,
+  type LocalePath
 } from 'langscale'
 import {
   createContext,
@@ -21,10 +23,22 @@ interface StorageConfig {
 }
 
 interface CreateLocaleConfigInput<
-  TBaseSchema extends TranslationSchema
+  TBaseSchema extends TranslationSchema,
+  TGlobals extends readonly LocalePath<TBaseSchema>[],
+  TNamespaces extends LocaleNamespacesConfig<TBaseSchema>
 > {
   defaultLocale: TBaseSchema
+  /**
+   * Locale paths composed into every namespace and mounted by their
+   * final path segment.
+   */
+  globals?: TGlobals
   locales: TBaseSchema[]
+  /**
+   * Explicit namespace composition. Paths listed here are merged at
+   * the namespace root after globals.
+   */
+  namespaces?: TNamespaces
   /**
    * Storage used to persist the selected locale between sessions.
    *
@@ -34,30 +48,34 @@ interface CreateLocaleConfigInput<
 }
 
 interface CreateLocaleConfigReturn<
-  TBaseSchema extends TranslationSchema
+  TBaseSchema extends TranslationSchema,
+  TGlobals extends readonly LocalePath<TBaseSchema>[],
+  TNamespaces extends LocaleNamespacesConfig<TBaseSchema>
 > {
   LocaleProvider: (props: {
     children?: ReactNode
   }) => ReturnType<typeof createElement>
-  getTranslations: <
-    TNamespace extends LocaleNamespace<TBaseSchema> | undefined =
-      undefined
-  >(options?: {
-    namespace?: TNamespace
-  }) => TNamespace extends LocaleNamespace<TBaseSchema>
-    ? LocaleNamespaceValue<TBaseSchema, TNamespace>
-    : TBaseSchema
+  getTranslations: GetTranslations<TBaseSchema, TGlobals, TNamespaces>
   locale: Locale
   setLocale: (locale: Locale) => void
   t: TBaseSchema
   useLocale: <
-    TNamespace extends LocaleNamespace<TBaseSchema> | undefined =
-      undefined
+    TNamespace extends
+      | LocaleNamespaceOption<TBaseSchema, TNamespaces>
+      | undefined = undefined
   >(options?: {
     namespace?: TNamespace
-  }) => TNamespace extends LocaleNamespace<TBaseSchema>
+  }) => TNamespace extends LocaleNamespaceOption<
+    TBaseSchema,
+    TNamespaces
+  >
     ? {
-        content: LocaleNamespaceValue<TBaseSchema, TNamespace>
+        content: ComposedLocaleNamespaceValue<
+          TBaseSchema,
+          TGlobals,
+          TNamespaces,
+          TNamespace
+        >
         fmt: ReturnType<typeof createFmt>
         locale: Locale
         setLocale: (locale: Locale) => void
@@ -70,9 +88,38 @@ interface CreateLocaleConfigReturn<
       }
 }
 
-interface LocaleStore<TBaseSchema extends TranslationSchema> {
+interface GetTranslations<
+  TBaseSchema extends TranslationSchema,
+  TGlobals extends readonly LocalePath<TBaseSchema>[],
+  TNamespaces extends LocaleNamespacesConfig<TBaseSchema>
+> {
+  (): TBaseSchema
+  <
+    const TNamespace extends LocaleNamespaceOption<
+      TBaseSchema,
+      TNamespaces
+    >
+  >(options: {
+    namespace: TNamespace
+  }): ComposedLocaleNamespaceValue<
+    TBaseSchema,
+    TGlobals,
+    TNamespaces,
+    TNamespace
+  >
+}
+
+interface LocaleStore<
+  TBaseSchema extends TranslationSchema,
+  TGlobals extends readonly LocalePath<TBaseSchema>[],
+  TNamespaces extends LocaleNamespacesConfig<TBaseSchema>
+> {
   getLocale: () => Locale
-  getTranslations: CreateLocaleConfigReturn<TBaseSchema>['getTranslations']
+  getTranslations: CreateLocaleConfigReturn<
+    TBaseSchema,
+    TGlobals,
+    TNamespaces
+  >['getTranslations']
   setLocale: (locale: Locale) => void
   subscribe: (listener: () => void) => () => void
   t: TBaseSchema
@@ -90,7 +137,11 @@ interface LocaleStore<TBaseSchema extends TranslationSchema> {
  *   ;```ts
  *   const { LocaleProvider, useLocale } = createLocaleConfig({
  *     defaultLocale: enUS,
- *     locales: [enUS, ptBR]
+ *     locales: [enUS, ptBR],
+ *     globals: ['global.action'],
+ *     namespaces: {
+ *       'login-form': ['form.login']
+ *     }
  *   })
  *
  *   function App() {
@@ -108,14 +159,27 @@ interface LocaleStore<TBaseSchema extends TranslationSchema> {
  *
  * @param config - Locale configuration shared with the core package.
  */
-const createLocaleConfig = <TBaseSchema extends TranslationSchema>({
+const createLocaleConfig = <
+  TBaseSchema extends TranslationSchema,
+  const TGlobals extends readonly LocalePath<TBaseSchema>[] = [],
+  const TNamespaces extends LocaleNamespacesConfig<TBaseSchema> =
+    Record<never, never>
+>({
   defaultLocale,
+  globals,
   locales,
+  namespaces,
   storage
-}: CreateLocaleConfigInput<TBaseSchema>): CreateLocaleConfigReturn<TBaseSchema> => {
+}: CreateLocaleConfigInput<
+  TBaseSchema,
+  TGlobals,
+  TNamespaces
+>): CreateLocaleConfigReturn<TBaseSchema, TGlobals, TNamespaces> => {
   const core = createCoreLocaleConfig({
     defaultLocale,
+    globals,
     locales,
+    namespaces,
     storage
   })
 
@@ -148,16 +212,33 @@ const createLocaleConfig = <TBaseSchema extends TranslationSchema>({
     notify()
   }
 
-  const LocaleContext =
-    createContext<LocaleStore<TBaseSchema> | null>(null)
+  const LocaleContext = createContext<LocaleStore<
+    TBaseSchema,
+    TGlobals,
+    TNamespaces
+  > | null>(null)
 
-  const store: LocaleStore<TBaseSchema> = {
+  const store: LocaleStore<TBaseSchema, TGlobals, TNamespaces> = {
     getLocale,
     getTranslations: core.getTranslations,
     setLocale,
     subscribe,
     t: core.t
   }
+
+  const getTranslations = ((options?: {
+    namespace?: LocaleNamespaceOption<TBaseSchema, TNamespaces>
+  }) => {
+    useSyncExternalStore(subscribe, getLocale, getLocale)
+
+    if (options?.namespace === undefined) {
+      return core.getTranslations()
+    }
+
+    return core.getTranslations({
+      namespace: options.namespace
+    })
+  }) as GetTranslations<TBaseSchema, TGlobals, TNamespaces>
 
   const LocaleProvider = ({
     children
@@ -170,8 +251,9 @@ const createLocaleConfig = <TBaseSchema extends TranslationSchema>({
     })
 
   const useLocale = <
-    TNamespace extends LocaleNamespace<TBaseSchema> | undefined =
-      undefined
+    TNamespace extends
+      | LocaleNamespaceOption<TBaseSchema, TNamespaces>
+      | undefined = undefined
   >(options?: {
     namespace?: TNamespace
   }) => {
@@ -190,16 +272,29 @@ const createLocaleConfig = <TBaseSchema extends TranslationSchema>({
     )
     const fmt = createFmt(locale)
 
-    const content = context.getTranslations(options)
+    const content =
+      options?.namespace === undefined
+        ? context.getTranslations()
+        : context.getTranslations({
+            namespace: options.namespace
+          })
 
     return {
       content,
       fmt,
       locale,
       setLocale: context.setLocale
-    } as TNamespace extends LocaleNamespace<TBaseSchema>
+    } as unknown as TNamespace extends LocaleNamespaceOption<
+      TBaseSchema,
+      TNamespaces
+    >
       ? {
-          content: LocaleNamespaceValue<TBaseSchema, TNamespace>
+          content: ComposedLocaleNamespaceValue<
+            TBaseSchema,
+            TGlobals,
+            TNamespaces,
+            TNamespace
+          >
           fmt: ReturnType<typeof createFmt>
           locale: Locale
           setLocale: (locale: Locale) => void
@@ -214,7 +309,7 @@ const createLocaleConfig = <TBaseSchema extends TranslationSchema>({
 
   return {
     LocaleProvider,
-    getTranslations: core.getTranslations,
+    getTranslations,
     get locale(): Locale {
       return currentLocale
     },

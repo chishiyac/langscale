@@ -2,6 +2,11 @@ import { createLocaleConfig } from '@langscale/react'
 import { defineLocale, type Locale } from 'langscale'
 
 interface DemoSchema {
+  component: {
+    bubble: {
+      state: (input: boolean) => string
+    }
+  }
   dashboard: {
     stats: {
       lastSync: string
@@ -11,10 +16,22 @@ interface DemoSchema {
     title: string
   }
   form: {
-    checkout: {
-      cta: string
-      description: string
-      title: string
+    login: {
+      email: {
+        description: string
+        label: string
+        placeholder: string
+      }
+    }
+  }
+  global: {
+    action: {
+      continue: string
+      save: string
+    }
+    state: {
+      loading: string
+      saved: string
     }
   }
   marketing: {
@@ -33,6 +50,12 @@ interface DemoSchema {
 
 const enUS = defineLocale<DemoSchema>([
   ({ fmt }) => ({
+    component: {
+      bubble: {
+        state: (input: boolean): string =>
+          input ? 'Collapse' : 'Expand'
+      }
+    },
     dashboard: {
       stats: {
         lastSync: fmt.relative(-15, 'minute'),
@@ -45,10 +68,23 @@ const enUS = defineLocale<DemoSchema>([
       title: fmt.toTitleCase('local operations')
     },
     form: {
-      checkout: {
-        cta: 'Continue to payment',
-        description: `Localized by langscale and rendered in ${fmt.languageName('en')}.`,
-        title: 'Fast checkout flow'
+      login: {
+        email: {
+          description:
+            'Use an organization email to easily collaborate with teammates.',
+          label: 'Email',
+          placeholder: 'joedoe@company.com'
+        }
+      }
+    },
+    global: {
+      action: {
+        continue: 'Continue',
+        save: 'Save'
+      },
+      state: {
+        loading: 'Loading',
+        saved: 'Saved'
       }
     },
     marketing: {
@@ -73,6 +109,12 @@ const enUS = defineLocale<DemoSchema>([
 
 const ptBR = defineLocale<DemoSchema>([
   ({ fmt }) => ({
+    component: {
+      bubble: {
+        state: (input: boolean): string =>
+          input ? 'Recolher' : 'Expandir'
+      }
+    },
     dashboard: {
       stats: {
         lastSync: fmt.relative(-15, 'minute'),
@@ -85,10 +127,23 @@ const ptBR = defineLocale<DemoSchema>([
       title: fmt.toTitleCase('operacoes locais')
     },
     form: {
-      checkout: {
-        cta: 'Continuar para pagamento',
-        description: `Localizado com langscale e renderizado em ${fmt.languageName('pt')}.`,
-        title: 'Fluxo de checkout rapido'
+      login: {
+        email: {
+          description:
+            'Use um email corporativo para colaborar facilmente com sua equipe.',
+          label: 'Email',
+          placeholder: 'joaosilva@empresa.com'
+        }
+      }
+    },
+    global: {
+      action: {
+        continue: 'Continuar',
+        save: 'Salvar'
+      },
+      state: {
+        loading: 'Carregando',
+        saved: 'Salvo'
       }
     },
     marketing: {
@@ -114,7 +169,11 @@ const ptBR = defineLocale<DemoSchema>([
 const { LocaleProvider, getTranslations, useLocale } =
   createLocaleConfig({
     defaultLocale: enUS,
+    globals: ['global.action', 'global.state'],
     locales: [enUS, ptBR],
+    namespaces: {
+      'login-form': ['form.login']
+    },
     storage: {
       key: '@langscale_demo_locale',
       method: 'local'
@@ -133,8 +192,11 @@ const AppContent = (): JSX.Element => {
   const home = useLocale({
     namespace: 'home-page'
   })
-  const checkout = getTranslations({
-    namespace: 'checkout-form'
+  const loginForm = getTranslations({
+    namespace: 'login-form'
+  })
+  const bubble = getTranslations({
+    namespace: 'bubble-component'
   })
 
   return (
@@ -178,9 +240,23 @@ const AppContent = (): JSX.Element => {
         </article>
 
         <article className='card'>
-          <h2>{checkout.title}</h2>
-          <p>{checkout.description}</p>
-          <strong>{checkout.cta}</strong>
+          <h2>{loginForm.email.label}</h2>
+          <label className='field'>
+            <span>{loginForm.email.description}</span>
+            <input
+              aria-label={loginForm.email.label}
+              placeholder={loginForm.email.placeholder}
+              type='email'
+            />
+          </label>
+          <div className='form-actions'>
+            <button className='button primary' type='button'>
+              {loginForm.action.continue}
+            </button>
+            <span className='muted'>{loginForm.state.saved}</span>
+          </div>
+          <p className='muted'>{loginForm.state.loading}</p>
+          <strong>{bubble.state(false)}</strong>
         </article>
       </section>
     </main>
