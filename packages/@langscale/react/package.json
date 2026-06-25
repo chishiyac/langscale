@@ -1,6 +1,6 @@
 {
   "name": "@langscale/react",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "React bindings for langscale.",
   "license": "MIT",
   "files": [
@@ -35,7 +35,7 @@
     "type-check": "pnpm exec tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "langscale": "^1.0.0"
+    "langscale": "^2.0.0"
   },
   "peerDependencies": {
     "react": ">=19",

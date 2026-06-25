@@ -1,5 +1,16 @@
 # @langscale/react
 
+## 2.0.0
+
+### Major Changes
+
+- add composed locale namespace support to the core and react locale configs.
+
+### Patch Changes
+
+- Updated dependencies
+  - langscale@2.0.0
+
 ## 1.0.1
 
 ### Patch Changes
